@@ -93,6 +93,7 @@ tr:hover td { background: rgba(51,65,85,.4); }
 .mtbl th:first-child, .mtbl td:first-child { text-align: left; white-space: nowrap; max-width: 130px; overflow: hidden; text-overflow: ellipsis; }
 .mtbl .group-hdr td { background: var(--bg); color: var(--sub); font-weight: 700; font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; }
 .mtbl .subtotal-pos td { background: rgba(34,197,94,.12); font-weight: 700; border-top: 1px solid rgba(34,197,94,.3); }
+.mtbl td[onclick]:hover { background: rgba(255,255,255,.07); text-decoration: underline; text-underline-offset: 3px; }
 .mtbl .subtotal-neg td { background: rgba(239,68,68,.12); font-weight: 700; border-top: 1px solid rgba(239,68,68,.3); }
 .mtbl .minrok td  { color: #64748b; font-size: .82rem; }
 .mtbl .grand-pos td { background: rgba(34,197,94,.18); font-weight: 700; color: var(--text); border-top: 2px solid rgba(34,197,94,.5); }
@@ -327,6 +328,16 @@ function renderYearBtns() {
   document.getElementById('year-btns2').innerHTML = html;
 }
 function setYear(y) { curYear = y; renderYearBtns(); renderOverview(); renderMonthly(); }
+
+// ── Drill-down z měsíční tabulky do Transakcí ─────────────────
+function drillTo(year, month, cat) {
+  document.getElementById('f-year').value  = year;
+  document.getElementById('f-month').value = month;
+  document.getElementById('f-cat').value   = cat === '__uncat' ? '__empty' : cat;
+  document.getElementById('f-search').value = '';
+  document.getElementById('f-source').value = '';
+  switchTab('txns');
+}
 
 // ── Bankovní účty ─────────────────────────────────────────────
 const BANK_BASE = 523840;   // demo stav k 31.12.2023
@@ -613,9 +624,10 @@ function renderMonthly() {
   const grandMonthTotals = {};
   let grandTotal = 0, grandPrev = 0;
 
-  function fv(v) {
+  function fv(v, cat, month) {
     if (!v) return '<td></td>';
-    return `<td>${Math.round(v).toLocaleString('cs-CZ')}</td>`;
+    const drill = cat ? ` onclick="drillTo(${curYear},${month},'${cat.replace(/'/g,"\\'")}')" style="cursor:pointer" title="Zobrazit transakce"` : '';
+    return `<td${drill}>${Math.round(v).toLocaleString('cs-CZ')}</td>`;
   }
   function fvBold(v, extraCls='') {
     const cls = [v<0?'c-neg':v>0?'c-pos':'', extraCls].filter(Boolean).join(' ');
@@ -640,7 +652,7 @@ function renderMonthly() {
       months.forEach(m => {
         const v = data[cat]?.[m] || 0;
         secMonthTotals[m] = (secMonthTotals[m] || 0) + v;
-        html += fv(v);
+        html += fv(v, cat, m);
       });
       html += `<td style="font-weight:600">${Math.round(total).toLocaleString('cs-CZ')}</td>`;
       html += prev ? `<td class="minrok-val" style="color:#64748b">${Math.round(prev).toLocaleString('cs-CZ')}</td>` : '<td></td>';
@@ -745,4 +757,4 @@ function renderTx() {
 window.addEventListener('DOMContentLoaded', loadData);
 </script>
 </body>
-</html>
+</html>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
